@@ -10,6 +10,7 @@ import {
 import { cn } from '@/lib/utils'
 import { EmptyState } from './empty-state'
 import { ErrorState } from './error-state'
+import { LoadingState } from './loading-state'
 
 /** A single column: how to render its header and each row's cell. Generic over the row type. */
 export interface Column<T> {
@@ -55,8 +56,8 @@ export function DataTable<T>({
   } else if (loading) {
     body = (
       <TableRow>
-        <TableCell colSpan={colSpan} className="h-24 text-center text-muted-foreground">
-          Loading…
+        <TableCell colSpan={colSpan} className="p-0">
+          <LoadingState />
         </TableCell>
       </TableRow>
     )

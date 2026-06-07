@@ -35,7 +35,7 @@ export function StatusFilter({ value = 'all', onChange, className }: StatusFilte
         if (isStatusFilterValue(v)) onChange(v)
       }}
     >
-      <SelectTrigger className={cn('w-36', className)}>
+      <SelectTrigger aria-label="Filter by status" className={cn('w-36', className)}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

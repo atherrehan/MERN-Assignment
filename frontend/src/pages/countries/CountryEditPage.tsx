@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { CountryForm } from '@/components/country-form'
 import { ErrorState } from '@/components/error-state'
+import { LoadingState } from '@/components/loading-state'
 import { countryService } from '@/services/country.service'
 import type { CountryFormValues } from '@/lib/validations/country'
 
@@ -49,7 +50,7 @@ export default function CountryEditPage() {
     <main className="mx-auto max-w-lg space-y-6 p-8">
       <h1 className="text-2xl font-semibold">Edit Country</h1>
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <LoadingState />
       ) : error ? (
         <ErrorState message={error} />
       ) : values ? (

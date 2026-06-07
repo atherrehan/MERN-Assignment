@@ -33,6 +33,7 @@ export function SearchInput({
       value={term}
       onChange={(e) => setTerm(e.target.value)}
       placeholder={placeholder}
+      aria-label={placeholder}
       className={className}
     />
   )
