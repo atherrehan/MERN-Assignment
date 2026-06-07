@@ -1,0 +1,16 @@
+- generic [ref=e2]:
+  - main [ref=e3]:
+    - heading "Edit Country" [level=1] [ref=e4]
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: Code
+        - textbox "Code" [ref=e8]: DE
+      - generic [ref=e9]:
+        - generic [ref=e10]: Name
+        - textbox "Name" [ref=e11]: Germany (Edited)
+      - generic [ref=e12]:
+        - checkbox "Active" [ref=e13]
+        - checkbox [ref=e14]
+        - generic [ref=e15]: Active
+      - button "Save changes" [ref=e16]
+  - region "Notifications alt+T"

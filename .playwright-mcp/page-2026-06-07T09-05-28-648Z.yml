@@ -1,0 +1,21 @@
+- generic [ref=e2]:
+  - main [ref=e3]:
+    - heading "New Country" [level=1] [ref=e4]
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: Code
+        - textbox "Code" [ref=e8]: PK
+      - generic [ref=e9]:
+        - generic [ref=e10]: Name
+        - textbox "Name" [ref=e11]: Duplicate
+      - generic [ref=e12]:
+        - checkbox "Active" [checked] [ref=e13]:
+          - img [ref=e15]
+        - checkbox [checked] [ref=e17]
+        - generic [ref=e18]: Active
+      - button "Create" [ref=e19]
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=e28]:
+        - img [ref=e30]
+        - generic [ref=e35]: Internal server error

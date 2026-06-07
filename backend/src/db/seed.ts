@@ -21,7 +21,8 @@ async function seed() {
     ])
     .returning();
 
-  const id = Object.fromEntries(countries.map((c) => [c.code, c.id])) as Record<string, number>;
+  const id: Record<string, number> = {};
+  for (const c of countries) id[c.code] = c.id;
 
   await db.insert(state).values([
     // Pakistan — 1 active, 1 inactive

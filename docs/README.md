@@ -25,3 +25,14 @@ Every API response follows a single typed `ApiResponse<T>` envelope.
 │  └─ types/   # ApiResponse<T>, Country, State — imported by both apps via @shared
 └─ docs/       # Project documentation
 ```
+
+## Environment variables
+
+| App | Var | Example | Purpose |
+| --- | --- | --- | --- |
+| backend | `PORT` | `4000` | API listen port |
+| backend | `CORS_ORIGIN` | `http://localhost:5173` | Allowed browser origin (the frontend) |
+| backend | `DATABASE_URL` | `postgres://postgres@127.0.0.1:5432/country_state` | Postgres connection |
+| frontend | `VITE_API_URL` | `http://localhost:4000/api` | Base URL of the backend API (must include `/api`; only `VITE_`-prefixed vars are exposed to the client) |
+
+Each app has a committed `.env.example`; copy it to `.env` (backend) / `.env.local` (frontend) and adjust.

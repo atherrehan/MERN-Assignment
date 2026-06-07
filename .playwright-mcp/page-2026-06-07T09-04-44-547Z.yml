@@ -1,0 +1,7 @@
+- generic [active]:
+  - generic:
+    - region "Notifications alt+T":
+      - list:
+        - listitem [ref=e21]:
+          - img [ref=e23]
+          - generic [ref=e27]: Country updated

@@ -1,0 +1,5 @@
+- generic [ref=e2]:
+  - main [ref=e3]:
+    - heading "Edit Country" [level=1] [ref=e4]
+    - paragraph [ref=e5]: Loading…
+  - region "Notifications alt+T"
