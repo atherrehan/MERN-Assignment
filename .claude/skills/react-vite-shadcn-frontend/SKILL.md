@@ -1,9 +1,9 @@
 ---
 name: react-vite-shadcn-frontend
-description: Frontend architecture for apps/web — React + Vite + TS strict + shadcn folder structure, react-router routes, the single Axios api-client, and the CRUD service-class pattern. Components never import Axios; they call service classes that return typed data from ApiResponse<T>.
+description: Frontend architecture for the frontend app — React + Vite + TS strict + shadcn folder structure, react-router routes, the single Axios api-client, and the CRUD service-class pattern. Components never import Axios; they call service classes that return typed data from ApiResponse<T>.
 ---
 
-# React + Vite + shadcn Frontend (`apps/web`)
+# React + Vite + shadcn Frontend (`frontend`)
 
 Frontend for the Country & State app. Consumes the API defined in the hub
 [country-state-app] and produced by [express-api-architecture].
@@ -11,7 +11,7 @@ Frontend for the Country & State app. Consumes the API defined in the hub
 ## Folder structure
 
 ```
-apps/web/
+frontend/
 ├─ src/
 │  ├─ main.tsx                 # router provider mount
 │  ├─ App.tsx                  # layout + <Outlet/>
@@ -27,7 +27,7 @@ apps/web/
 │  ├─ pages/
 │  │  ├─ countries/            # list / form pages
 │  │  └─ states/
-│  └─ types/                   # re-export from @app/shared if needed
+│  └─ types/                   # re-export from @shared if needed
 ├─ index.html
 ├─ vite.config.ts
 ├─ tailwind.config.ts
@@ -39,7 +39,7 @@ apps/web/
 ```ts
 // lib/apiClient.ts
 import axios from 'axios';
-import type { ApiResponse } from '@app/shared';
+import type { ApiResponse } from '@shared';
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
@@ -70,7 +70,7 @@ Components call these; they return **unwrapped, typed** data.
 ```ts
 // services/country.service.ts
 import { request } from '../lib/apiClient';
-import type { Country } from '@app/shared';
+import type { Country } from '@shared';
 
 export class CountryService {
   list()              { return request<Country[]>((h) => h.get('/countries')); }
@@ -117,7 +117,7 @@ export const router = createBrowserRouter([
 1. **Components never import `axios`.** They import a service class and `await` its
    methods. Axios lives only in `lib/apiClient.ts`, used only by `services/`.
 2. Services return **unwrapped** `T` (or throw). Components never see `ApiResponse`.
-3. Types come from `@app/shared` — never redefine `Country`/`State`/`ApiResponse`.
+3. Types come from `@shared` — never redefine `Country`/`State`/`ApiResponse`.
 4. UI is shadcn components in `components/ui` + Tailwind; no other UI kit.
 5. TS strict. No `any` in service signatures.
 6. Surface thrown error `message` in the UI (toast/inline) — it is already the

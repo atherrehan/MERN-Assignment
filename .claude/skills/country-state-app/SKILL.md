@@ -19,25 +19,23 @@ When a step touches the backend, read [express-api-architecture]; the database,
 | Backend        | Node.js + Express, TypeScript (strict)  |
 | Database       | PostgreSQL                              |
 | ORM            | Drizzle                                 |
-| Shared code    | `packages/shared` (types only)          |
+| Shared code    | `shared/` (root, types only)            |
 
 ## Monorepo layout
 
 ```
 /
-├─ apps/
-│  ├─ web/          # React + Vite + shadcn frontend
-│  └─ api/          # Express + Drizzle backend
-├─ packages/
-│  └─ shared/       # ApiResponse<T>, Country, State — imported by both apps
-├─ package.json     # workspaces root
-└─ tsconfig.base.json
+├─ backend/        # Express + Drizzle API
+├─ frontend/       # React + Vite + shadcn web app
+├─ shared/
+│  └─ types/       # ApiResponse<T>, Country, State — imported by both apps
+└─ docs/           # project documentation
 ```
 
-- npm/pnpm workspaces. `apps/*` and `packages/*` are workspace members.
-- Both apps depend on `@app/shared` for types. The contract lives in one place.
+- Both apps import the contract from `shared/` via the `@shared` tsconfig path alias.
+  The contract lives in exactly one place; neither app redefines it.
 
-## Shared types (`packages/shared`)
+## Shared types (`shared/types`)
 
 These are **non-negotiable** and identical on both sides of the wire.
 
@@ -92,7 +90,7 @@ All routes prefixed `/api`. Every response is `ApiResponse<T>`.
 1. **Controllers/routes** do request/response wiring only — no business logic, no DB.
 2. **Service classes** own business logic + CRUD and are the **only** layer touching Drizzle.
 3. **Frontend components** never import Axios. They call service-class methods in
-   `apps/web/src/services` — the only place Axios is used.
+   `frontend/src/services` — the only place Axios is used.
 4. Every response uses `ApiResponse<T>` exactly.
 5. Services **throw typed errors**; a single global Express error-handler converts them
    to `ApiResponse` with `success=false` and the error's message.
@@ -110,12 +108,12 @@ All routes prefixed `/api`. Every response is `ApiResponse<T>`.
 - **API**: Node host (Render/Railway/Fly). Runs migrations on deploy, serves `/api`.
 - **Web**: static build (Vite `dist/`) on a CDN/static host (Vercel/Netlify).
   `VITE_API_BASE_URL` points at the API origin.
-- Env files: `apps/api/.env` (`DATABASE_URL`, `PORT`), `apps/web/.env` (`VITE_API_BASE_URL`).
+- Env files: `backend/.env` (`DATABASE_URL`, `PORT`), `frontend/.env` (`VITE_API_BASE_URL`).
 
 ## Requirements checklist
 
-- [ ] Monorepo with workspaces: `apps/web`, `apps/api`, `packages/shared`.
-- [ ] `packages/shared` exports `ApiResponse<T>`, `Country`, `State`.
+- [ ] Monorepo: `backend/`, `frontend/`, `shared/`, `docs/`.
+- [ ] `shared/types` exports `ApiResponse<T>`, `Country`, `State`; both apps alias `@shared`.
 - [ ] TS strict on both apps.
 - [ ] Drizzle schema for Country & State (FK State.countryId → Country.id).
 - [ ] DB client + migrations + seed.

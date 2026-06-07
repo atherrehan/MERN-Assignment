@@ -1,9 +1,9 @@
 ---
 name: express-api-architecture
-description: Backend architecture for apps/api — folder structure, the layer-responsibility table, async handler, typed errors + global error middleware, controller and service patterns, and validation. Enforces that only services touch Drizzle and every response is ApiResponse<T>.
+description: Backend architecture for the backend app — folder structure, the layer-responsibility table, async handler, typed errors + global error middleware, controller and service patterns, and validation. Enforces that only services touch Drizzle and every response is ApiResponse<T>.
 ---
 
-# Express API Architecture (`apps/api`)
+# Express API Architecture (`backend`)
 
 Backend for the Country & State app. See the hub [country-state-app] for the contract
 and [drizzle-postgres-schema] for the data layer this calls into.
@@ -11,7 +11,7 @@ and [drizzle-postgres-schema] for the data layer this calls into.
 ## Folder structure
 
 ```
-apps/api/
+backend/
 ├─ src/
 │  ├─ index.ts                 # app bootstrap, listen
 │  ├─ app.ts                   # express app: middleware, routes, error handler
@@ -52,7 +52,7 @@ apps/api/
 
 ```ts
 // utils/apiResponse.ts
-import type { ApiResponse } from '@app/shared';
+import type { ApiResponse } from '@shared';
 export const ok   = <T>(data: T, message = 'OK'): ApiResponse<T> =>
   ({ success: true, message, data });
 export const fail = (message: string): ApiResponse<null> =>
@@ -137,7 +137,7 @@ import { db } from '../db/client';
 import { countries } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { NotFoundError } from '../errors/AppError';
-import type { Country } from '@app/shared';
+import type { Country } from '@shared';
 
 export class CountryService {
   async list(): Promise<Country[]> {
