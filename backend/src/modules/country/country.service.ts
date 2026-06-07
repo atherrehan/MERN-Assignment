@@ -1,13 +1,17 @@
-import { eq, ilike, or } from 'drizzle-orm';
+import { and, asc, count, desc, eq, ilike, or } from 'drizzle-orm';
 import { db } from '../../db';
 import { country } from '../../db/schema';
 import { NotFoundError } from '../../common/errors';
-import type {
-  Country,
-  CreateCountryDto,
-  UpdateCountryDto,
-  CountrySearchQuery,
-} from './country.types';
+import type { PagedResult } from '../../common/pagination';
+import type { Country, CreateCountryDto, UpdateCountryDto } from './country.types';
+import type { CountrySearchInput } from './country.validation';
+
+/** Columns the API allows sorting by, mapped to their Drizzle column. */
+const SORTABLE = {
+  code: country.code,
+  name: country.name,
+  isActive: country.isActive,
+} as const;
 
 /**
  * Business logic + CRUD for countries. This is the ONLY place country rows are
@@ -44,12 +48,42 @@ export class CountryService {
     if (!row) throw new NotFoundError(`Country ${id} not found`);
   }
 
-  /** Minimal list/search: optional case-insensitive match on code or name. */
-  async search(query: CountrySearchQuery): Promise<Country[]> {
-    const term = query.search?.trim();
-    const where = term
-      ? or(ilike(country.code, `%${term}%`), ilike(country.name, `%${term}%`))
-      : undefined;
-    return db.select().from(country).where(where);
+  /**
+   * Paged search/list. Matches `q` against code OR name (case-insensitive,
+   * partial), filters by active state, sorts by a whitelisted column, and pages
+   * with limit/offset. Returns items plus paging metadata.
+   */
+  async search(query: CountrySearchInput): Promise<PagedResult<Country>> {
+    const { q, isActive, page, pageSize, sortBy, sortOrder } = query;
+
+    const conditions = [];
+    if (q) {
+      conditions.push(or(ilike(country.code, `%${q}%`), ilike(country.name, `%${q}%`)));
+    }
+    if (isActive === 'active') conditions.push(eq(country.isActive, true));
+    else if (isActive === 'inactive') conditions.push(eq(country.isActive, false));
+
+    const where = conditions.length ? and(...conditions) : undefined;
+
+    const sortColumn = SORTABLE[sortBy];
+    const orderBy = sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn);
+
+    const items = await db
+      .select()
+      .from(country)
+      .where(where)
+      .orderBy(orderBy)
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
+
+    const [{ total }] = await db.select({ total: count() }).from(country).where(where);
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 }

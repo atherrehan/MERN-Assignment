@@ -8,8 +8,3 @@ export type CreateCountryDto = Omit<CountryInsert, 'id'>;
 
 /** Payload to update a country — any subset of the creatable fields. */
 export type UpdateCountryDto = Partial<CreateCountryDto>;
-
-/** Minimal search input: a single term matched against code/name. */
-export interface CountrySearchQuery {
-  search?: string;
-}

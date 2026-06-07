@@ -3,6 +3,8 @@ import cors from 'cors';
 import { config } from './config/env';
 import { ok } from './common/api-response';
 import { errorHandler } from './common/error-handler';
+import { countryRouter } from './modules/country/country.routes';
+import { stateRouter } from './modules/state/state.routes';
 
 export const app = express();
 
@@ -13,7 +15,8 @@ app.get('/health', (_req, res) => {
   res.json(ok({ status: 'ok' }, 'Service healthy'));
 });
 
-// Feature routes are registered in a later step.
+app.use('/api/countries', countryRouter);
+app.use('/api/states', stateRouter);
 
 // Global error handler — MUST stay last, after all routes/middleware.
 app.use(errorHandler);
