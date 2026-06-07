@@ -21,5 +21,7 @@ Every API response follows a single typed `ApiResponse<T>` envelope.
 /
 ├─ backend/    # Node.js + Express + Drizzle API
 ├─ frontend/   # React + Vite + shadcn web app
+├─ shared/
+│  └─ types/   # ApiResponse<T>, Country, State — imported by both apps via @shared
 └─ docs/       # Project documentation
 ```
