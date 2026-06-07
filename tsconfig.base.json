@@ -4,10 +4,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
     "paths": {
-      "@shared": ["shared/types"],
-      "@shared/*": ["shared/types/*"]
+      "@shared": ["./shared/types"],
+      "@shared/*": ["./shared/types/*"]
     }
   }
 }
