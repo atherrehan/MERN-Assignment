@@ -46,3 +46,4 @@ pnpm-debug.log*
 .vs/
 .DS_Store
 Thumbs.db
+/backend/--node_modules
