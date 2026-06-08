@@ -5,7 +5,8 @@ import CountriesListPage from '@/pages/countries/CountriesListPage'
 import CountryNewPage from '@/pages/countries/CountryNewPage'
 import CountryEditPage from '@/pages/countries/CountryEditPage'
 import StatesListPage from '@/pages/states/StatesListPage'
-import StateStubPage from '@/pages/states/StateStubPage'
+import StateNewPage from '@/pages/states/StateNewPage'
+import StateEditPage from '@/pages/states/StateEditPage'
 
 function App() {
   return (
@@ -16,9 +17,8 @@ function App() {
         <Route path="/countries/new" element={<CountryNewPage />} />
         <Route path="/countries/:id" element={<CountryEditPage />} />
         <Route path="/states" element={<StatesListPage />} />
-        {/* State create/edit are stubs until Step 16. */}
-        <Route path="/states/new" element={<StateStubPage />} />
-        <Route path="/states/:id" element={<StateStubPage />} />
+        <Route path="/states/new" element={<StateNewPage />} />
+        <Route path="/states/:id" element={<StateEditPage />} />
       </Routes>
       <Toaster richColors position="top-right" />
     </>
