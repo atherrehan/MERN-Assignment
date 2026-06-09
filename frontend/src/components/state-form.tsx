@@ -13,6 +13,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { countryService } from '@/services/country.service'
 import type { Country } from '@/types/api'
 
@@ -21,10 +32,17 @@ interface StateFormProps {
   submitLabel?: string
   /** Owns the write: should call the service, then toast/navigate. Throwing keeps the form enabled. */
   onSubmit: (values: StateFormValues) => Promise<void>
+  /** When provided (edit mode), renders a Delete action behind a confirmation dialog. */
+  onDelete?: () => Promise<void>
 }
 
 /** Shared create/edit form for a State, including the country selector. */
-export function StateForm({ defaultValues, submitLabel = 'Save', onSubmit }: StateFormProps) {
+export function StateForm({
+  defaultValues,
+  submitLabel = 'Save',
+  onSubmit,
+  onDelete,
+}: StateFormProps) {
   const {
     register,
     control,
@@ -53,6 +71,20 @@ export function StateForm({ defaultValues, submitLabel = 'Save', onSubmit }: Sta
       active = false
     }
   }, [])
+
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  async function handleConfirmDelete() {
+    if (!onDelete) return
+    setDeleting(true)
+    try {
+      await onDelete() // navigates on success; toasts on error
+    } finally {
+      setDeleting(false)
+      setConfirmOpen(false)
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -115,9 +147,39 @@ export function StateForm({ defaultValues, submitLabel = 'Save', onSubmit }: Sta
         <Label htmlFor="isActive">Active</Label>
       </div>
 
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Saving…' : submitLabel}
-      </Button>
+      <div className="flex items-center justify-between gap-3">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Saving…' : submitLabel}
+        </Button>
+
+        {onDelete && (
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialogTrigger
+              render={
+                <Button type="button" variant="destructive">
+                  Delete
+                </Button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to delete this state?</AlertDialogTitle>
+                <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  disabled={deleting}
+                  onClick={handleConfirmDelete}
+                >
+                  {deleting ? 'Deleting…' : 'Delete'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
     </form>
   )
 }

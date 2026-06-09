@@ -48,6 +48,17 @@ export default function StateEditPage() {
     }
   }
 
+  async function handleDelete() {
+    try {
+      await stateService.remove(stateId)
+      toast.success('State deleted')
+      navigate('/states')
+    } catch (err) {
+      // Normalized server message — stay on the page.
+      toast.error(err instanceof Error ? err.message : 'Failed to delete state')
+    }
+  }
+
   return (
     <main className="mx-auto max-w-lg space-y-6 p-8">
       <h1 className="text-2xl font-semibold">Edit State</h1>
@@ -56,7 +67,12 @@ export default function StateEditPage() {
       ) : error ? (
         <ErrorState message={error} />
       ) : values ? (
-        <StateForm defaultValues={values} submitLabel="Save changes" onSubmit={handleSubmit} />
+        <StateForm
+          defaultValues={values}
+          submitLabel="Save changes"
+          onSubmit={handleSubmit}
+          onDelete={handleDelete}
+        />
       ) : null}
     </main>
   )

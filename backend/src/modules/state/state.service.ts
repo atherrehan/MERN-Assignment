@@ -46,14 +46,11 @@ export class StateService {
     return row;
   }
 
-  /** Soft delete: mark inactive (404 if missing). The row is kept. */
+  /** Delete a state (404 if missing). States are leaf rows, so this is a hard delete. */
   async remove(id: number): Promise<void> {
-    const [row] = await db
-      .update(state)
-      .set({ isActive: false })
-      .where(eq(state.id, id))
-      .returning();
-    if (!row) throw new NotFoundError(`State ${id} not found`);
+    const [existing] = await db.select({ id: state.id }).from(state).where(eq(state.id, id));
+    if (!existing) throw new NotFoundError(`State ${id} not found`);
+    await db.delete(state).where(eq(state.id, id));
   }
 
   /**
