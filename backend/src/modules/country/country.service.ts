@@ -1,7 +1,7 @@
 import { and, asc, count, desc, eq, ilike, or } from 'drizzle-orm';
 import { db } from '../../db';
 import { country, state } from '../../db/schema';
-import { NotFoundError } from '../../common/errors';
+import { NotFoundError, ValidationError } from '../../common/errors';
 import type { PagedResult } from '../../common/pagination';
 import type {
   Country,
@@ -43,14 +43,24 @@ export class CountryService {
     return row;
   }
 
-  /** Soft delete: mark inactive (404 if missing). The row is kept. */
+  /**
+   * Delete a country (404 if missing). Blocks deletion when the country still has
+   * states — counts them first and throws ValidationError rather than letting the
+   * FK constraint fail.
+   */
   async remove(id: number): Promise<void> {
-    const [row] = await db
-      .update(country)
-      .set({ isActive: false })
-      .where(eq(country.id, id))
-      .returning();
-    if (!row) throw new NotFoundError(`Country ${id} not found`);
+    const [existing] = await db.select({ id: country.id }).from(country).where(eq(country.id, id));
+    if (!existing) throw new NotFoundError(`Country ${id} not found`);
+
+    const [{ states }] = await db
+      .select({ states: count() })
+      .from(state)
+      .where(eq(state.countryId, id));
+    if (states > 0) {
+      throw new ValidationError('Country cannot be deleted with 1 or more states');
+    }
+
+    await db.delete(country).where(eq(country.id, id));
   }
 
   /**

@@ -46,6 +46,17 @@ export default function CountryEditPage() {
     }
   }
 
+  async function handleDelete() {
+    try {
+      await countryService.remove(countryId)
+      toast.success('Country deleted')
+      navigate('/countries')
+    } catch (err) {
+      // Normalized server message (e.g. blocked by states) — stay on the page.
+      toast.error(err instanceof Error ? err.message : 'Failed to delete country')
+    }
+  }
+
   return (
     <main className="mx-auto max-w-lg space-y-6 p-8">
       <h1 className="text-2xl font-semibold">Edit Country</h1>
@@ -54,7 +65,12 @@ export default function CountryEditPage() {
       ) : error ? (
         <ErrorState message={error} />
       ) : values ? (
-        <CountryForm defaultValues={values} submitLabel="Save changes" onSubmit={handleSubmit} />
+        <CountryForm
+          defaultValues={values}
+          submitLabel="Save changes"
+          onSubmit={handleSubmit}
+          onDelete={handleDelete}
+        />
       ) : null}
     </main>
   )
