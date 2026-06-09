@@ -1,9 +1,14 @@
 import { and, asc, count, desc, eq, ilike, or } from 'drizzle-orm';
 import { db } from '../../db';
-import { country } from '../../db/schema';
+import { country, state } from '../../db/schema';
 import { NotFoundError } from '../../common/errors';
 import type { PagedResult } from '../../common/pagination';
-import type { Country, CreateCountryDto, UpdateCountryDto } from './country.types';
+import type {
+  Country,
+  CreateCountryDto,
+  UpdateCountryDto,
+  CountrySearchRow,
+} from './country.types';
 import type { CountrySearchInput } from './country.validation';
 
 /** Columns the API allows sorting by, mapped to their Drizzle column. */
@@ -51,9 +56,10 @@ export class CountryService {
   /**
    * Paged search/list. Matches `q` against code OR name (case-insensitive,
    * partial), filters by active state, sorts by a whitelisted column, and pages
-   * with limit/offset. Returns items plus paging metadata.
+   * with limit/offset. Each row includes `stateCount` (states belonging to the
+   * country) via a LEFT JOIN + GROUP BY, so state-less countries report 0.
    */
-  async search(query: CountrySearchInput): Promise<PagedResult<Country>> {
+  async search(query: CountrySearchInput): Promise<PagedResult<CountrySearchRow>> {
     const { q, isActive, page, pageSize, sortBy, sortOrder } = query;
 
     const conditions = [];
@@ -69,9 +75,17 @@ export class CountryService {
     const orderBy = sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn);
 
     const items = await db
-      .select()
+      .select({
+        id: country.id,
+        code: country.code,
+        name: country.name,
+        isActive: country.isActive,
+        stateCount: count(state.id),
+      })
       .from(country)
+      .leftJoin(state, eq(state.countryId, country.id))
       .where(where)
+      .groupBy(country.id, country.code, country.name, country.isActive)
       .orderBy(orderBy)
       .limit(pageSize)
       .offset((page - 1) * pageSize);

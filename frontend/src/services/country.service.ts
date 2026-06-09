@@ -1,7 +1,7 @@
 // The ONLY caller of the axios instance for country endpoints.
 // Pages/components MUST import this service — never axios directly.
 import { apiClient, unwrap } from '@/lib/api/axios'
-import type { ApiResponse, Country, PagedResult } from '@/types/api'
+import type { ApiResponse, Country, CountrySearchRow, PagedResult } from '@/types/api'
 
 /** Search/list params — mirrors the backend country search query schema. */
 export interface CountrySearchParams {
@@ -24,12 +24,12 @@ export interface CreateCountryDto {
 export type UpdateCountryDto = Partial<CreateCountryDto>
 
 class CountryService {
-  /** Paged search/list of countries. */
-  async search(params: CountrySearchParams = {}): Promise<PagedResult<Country>> {
-    const res = await apiClient.get<PagedResult<Country>, ApiResponse<PagedResult<Country>>>(
-      '/countries/search',
-      { params },
-    )
+  /** Paged search/list of countries; each row includes its state count. */
+  async search(params: CountrySearchParams = {}): Promise<PagedResult<CountrySearchRow>> {
+    const res = await apiClient.get<
+      PagedResult<CountrySearchRow>,
+      ApiResponse<PagedResult<CountrySearchRow>>
+    >('/countries/search', { params })
     return unwrap(res)
   }
 

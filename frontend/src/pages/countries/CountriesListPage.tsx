@@ -7,11 +7,11 @@ import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { countryService } from '@/services/country.service'
-import type { Country, PagedResult } from '@/types/api'
+import type { CountrySearchRow, PagedResult } from '@/types/api'
 
 const PAGE_SIZE = 5
 
-const columns: Column<Country>[] = [
+const columns: Column<CountrySearchRow>[] = [
   { key: 'code', header: 'Code', cell: (r) => r.code },
   {
     key: 'name',
@@ -26,6 +26,7 @@ const columns: Column<Country>[] = [
       </Link>
     ),
   },
+  { key: 'stateCount', header: 'States', cell: (r) => r.stateCount },
   {
     key: 'status',
     header: 'Status',
@@ -42,7 +43,7 @@ export default function CountriesListPage() {
   const [term, setTerm] = useState('')
   const [status, setStatus] = useState<StatusFilterValue>('all')
   const [page, setPage] = useState(1)
-  const [data, setData] = useState<PagedResult<Country> | null>(null)
+  const [data, setData] = useState<PagedResult<CountrySearchRow> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

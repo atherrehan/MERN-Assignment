@@ -8,3 +8,8 @@ export type CreateCountryDto = Omit<CountryInsert, 'id'>;
 
 /** Payload to update a country — any subset of the creatable fields. */
 export type UpdateCountryDto = Partial<CreateCountryDto>;
+
+/** A search result row: the country plus how many states belong to it. */
+export interface CountrySearchRow extends Country {
+  stateCount: number;
+}

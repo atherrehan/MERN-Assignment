@@ -35,3 +35,8 @@ export interface State {
 export interface StateSearchRow extends State {
   countryName: string
 }
+
+/** A country row returned by the search endpoint, with its state count. */
+export interface CountrySearchRow extends Country {
+  stateCount: number
+}
