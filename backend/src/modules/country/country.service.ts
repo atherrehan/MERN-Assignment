@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, ilike, or } from 'drizzle-orm';
+import { and, asc, count, desc, eq, ilike, inArray, or } from 'drizzle-orm';
 import { db } from '../../db';
 import { country, state } from '../../db/schema';
 import { NotFoundError, ValidationError } from '../../common/errors';
@@ -8,7 +8,11 @@ import type {
   CreateCountryDto,
   UpdateCountryDto,
   CountrySearchRow,
+  CountryBulkDeleteResult,
 } from './country.types';
+
+/** Reason states for a country that cannot be bulk-deleted because it has states. */
+const HAS_STATES_REASON = 'Country cannot be deleted with 1 or more states';
 import type { CountrySearchInput } from './country.validation';
 
 /** Columns the API allows sorting by, mapped to their Drizzle column. */
@@ -57,10 +61,47 @@ export class CountryService {
       .from(state)
       .where(eq(state.countryId, id));
     if (states > 0) {
-      throw new ValidationError('Country cannot be deleted with 1 or more states');
+      throw new ValidationError(HAS_STATES_REASON);
     }
 
     await db.delete(country).where(eq(country.id, id));
+  }
+
+  /**
+   * Bulk delete with the same rule as single delete: a country with 1+ states is
+   * NOT deleted. One query counts states per requested country; ids are partitioned
+   * into deletable (0 states) and skipped (1+ states); the deletable set is removed
+   * in one inArray query. Partial success — never throws for skipped rows.
+   */
+  async bulkDelete(ids: number[]): Promise<CountryBulkDeleteResult> {
+    const counts = await db
+      .select({ countryId: state.countryId, states: count() })
+      .from(state)
+      .where(inArray(state.countryId, ids))
+      .groupBy(state.countryId);
+
+    const stateCountByCountry = new Map(counts.map((row) => [row.countryId, row.states]));
+
+    const deletable: number[] = [];
+    const skipped: CountryBulkDeleteResult['skipped'] = [];
+    for (const id of ids) {
+      if ((stateCountByCountry.get(id) ?? 0) > 0) {
+        skipped.push({ id, reason: HAS_STATES_REASON });
+      } else {
+        deletable.push(id);
+      }
+    }
+
+    let deletedIds: number[] = [];
+    if (deletable.length > 0) {
+      const deleted = await db
+        .delete(country)
+        .where(inArray(country.id, deletable))
+        .returning({ id: country.id });
+      deletedIds = deleted.map((row) => row.id);
+    }
+
+    return { deletedIds, skipped };
   }
 
   /**

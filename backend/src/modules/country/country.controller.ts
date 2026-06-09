@@ -1,6 +1,7 @@
 import { asyncHandler } from '../../common/async-handler';
 import { ok } from '../../common/api-response';
 import type { ValidatedLocals } from '../../common/validate';
+import type { BulkDeleteInput } from '../../common/bulk';
 import { CountryService } from './country.service';
 import type {
   CreateCountryInput,
@@ -43,5 +44,12 @@ export class CountryController {
   remove = asyncHandler<ValidatedLocals<{ params: CountryIdParam }>>(async (_req, res) => {
     await this.service.remove(res.locals.validated.params.id);
     res.json(ok(null, 'Country deleted'));
+  });
+
+  bulkDelete = asyncHandler<ValidatedLocals<{ body: BulkDeleteInput }>>(async (_req, res) => {
+    const result = await this.service.bulkDelete(res.locals.validated.body.ids);
+    res.json(
+      ok(result, `Deleted ${result.deletedIds.length}, skipped ${result.skipped.length}`),
+    );
   });
 }

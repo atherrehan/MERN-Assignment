@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, ilike, or } from 'drizzle-orm';
+import { and, asc, count, desc, eq, ilike, inArray, or } from 'drizzle-orm';
 import { db } from '../../db';
 import { country, state } from '../../db/schema';
 import { NotFoundError } from '../../common/errors';
@@ -51,6 +51,15 @@ export class StateService {
     const [existing] = await db.select({ id: state.id }).from(state).where(eq(state.id, id));
     if (!existing) throw new NotFoundError(`State ${id} not found`);
     await db.delete(state).where(eq(state.id, id));
+  }
+
+  /** Delete every state whose id is in `ids` in a single query; returns how many were removed. */
+  async bulkDelete(ids: number[]): Promise<number> {
+    const deleted = await db
+      .delete(state)
+      .where(inArray(state.id, ids))
+      .returning({ id: state.id });
+    return deleted.length;
   }
 
   /**

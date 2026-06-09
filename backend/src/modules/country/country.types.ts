@@ -13,3 +13,9 @@ export type UpdateCountryDto = Partial<CreateCountryDto>;
 export interface CountrySearchRow extends Country {
   stateCount: number;
 }
+
+/** Partial-success report for a bulk country delete. */
+export interface CountryBulkDeleteResult {
+  deletedIds: number[];
+  skipped: { id: number; reason: string }[];
+}

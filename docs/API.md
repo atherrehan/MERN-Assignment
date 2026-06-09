@@ -148,13 +148,43 @@ Path param `id` (integer > 0). Body — any subset of `code` / `name` / `isActiv
 
 ### `DELETE /api/countries/:id`
 
-Path param `id` (integer > 0). **Soft delete** — sets `isActive=false`; the row is kept.
+Path param `id` (integer > 0). Deletes the country. **Blocked when the country has 1+ states** — the state count is checked first and a 400 is returned rather than letting the FK constraint fail.
 
 **200**
 ```json
 { "success": true, "message": "Country deleted", "data": null }
 ```
+**400** — the country still has states:
+```json
+{ "success": false, "message": "Country cannot be deleted with 1 or more states", "data": null }
+```
 **404** — country does not exist.
+
+### `POST /api/countries/bulk-delete`
+
+Delete multiple countries, applying the same rule per id: a country with 1+ states is **not** deleted. This is a **partial-success report** — `success` stays `true` even when some ids are skipped.
+
+Body:
+
+| Field | Type | Notes |
+| ----- | ---- | ----- |
+| `ids` | `number[]` | non-empty array of positive integers |
+
+**200** — `data` is `{ deletedIds: number[]; skipped: { id: number; reason: string }[] }`
+```json
+{
+  "success": true,
+  "message": "Deleted 2, skipped 1",
+  "data": {
+    "deletedIds": [19, 20],
+    "skipped": [{ "id": 1, "reason": "Country cannot be deleted with 1 or more states" }]
+  }
+}
+```
+- `deletedIds` — ids actually removed (state-less, and existing).
+- `skipped` — ids not removed because they still have states, each with the `reason`.
+
+**400** — `ids` missing/empty/invalid, e.g. `{ "success": false, "message": "ids: Provide at least one id", "data": null }`.
 
 ---
 
@@ -243,13 +273,29 @@ existing country (else **404**).
 
 ### `DELETE /api/states/:id`
 
-Path param `id` (integer > 0). **Soft delete** — sets `isActive=false`.
+Path param `id` (integer > 0). Deletes the state (hard delete — states are leaf rows).
 
 **200**
 ```json
 { "success": true, "message": "State deleted", "data": null }
 ```
 **404** — state does not exist.
+
+### `POST /api/states/bulk-delete`
+
+Delete multiple states in a single query.
+
+Body:
+
+| Field | Type | Notes |
+| ----- | ---- | ----- |
+| `ids` | `number[]` | non-empty array of positive integers |
+
+**200** — `data` is `{ deletedCount: number }` (rows actually removed)
+```json
+{ "success": true, "message": "Deleted 3 states", "data": { "deletedCount": 3 } }
+```
+**400** — `ids` missing/empty/invalid.
 
 ---
 
