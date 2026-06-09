@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { SearchInput } from '@/components/search-input'
 import { StatusFilter, type StatusFilterValue } from '@/components/status-filter'
+import { CountryCombobox } from '@/components/country-combobox'
 import { DataTable, type Column } from '@/components/data-table'
 import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from '@/components/ui/badge'
@@ -42,6 +43,7 @@ export default function StatesListPage() {
   const navigate = useNavigate()
   const [term, setTerm] = useState('')
   const [status, setStatus] = useState<StatusFilterValue>('all')
+  const [countryId, setCountryId] = useState<number | undefined>(undefined)
   const [page, setPage] = useState(1)
   const [data, setData] = useState<PagedResult<StateSearchRow> | null>(null)
   const [loading, setLoading] = useState(true)
@@ -56,13 +58,17 @@ export default function StatesListPage() {
     setStatus(s)
     setPage(1)
   }, [])
+  const handleCountry = useCallback((id: number | undefined) => {
+    setCountryId(id)
+    setPage(1)
+  }, [])
 
   useEffect(() => {
     let active = true
     setLoading(true)
     setError(null)
     stateService
-      .search({ q: term || undefined, isActive: status, page, pageSize: PAGE_SIZE })
+      .search({ q: term || undefined, isActive: status, countryId, page, pageSize: PAGE_SIZE })
       .then((res) => {
         if (active) setData(res)
       })
@@ -78,7 +84,7 @@ export default function StatesListPage() {
     return () => {
       active = false
     }
-  }, [term, status, page])
+  }, [term, status, countryId, page])
 
   return (
     <main className="mx-auto max-w-4xl space-y-4 p-8">
@@ -89,9 +95,10 @@ export default function StatesListPage() {
         </Link>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <SearchInput onSearch={handleSearch} className="w-64" />
         <StatusFilter value={status} onChange={handleStatus} />
+        <CountryCombobox value={countryId} onChange={handleCountry} />
       </div>
 
       <DataTable

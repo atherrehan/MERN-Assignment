@@ -25,10 +25,11 @@ export const stateIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
-/** Search/list query params — same semantics as country search. */
+/** Search/list query params — same semantics as country search, plus a country filter. */
 export const stateSearchSchema = z.object({
   q: z.string().trim().min(1).optional(),
   isActive: z.enum(['all', 'active', 'inactive']).default('all'),
+  countryId: z.coerce.number().int().positive().optional(),
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(20),
   sortBy: z.enum(['code', 'name', 'isActive']).default('name'),

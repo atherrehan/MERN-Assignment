@@ -59,7 +59,7 @@ export class StateService {
    * country to include `countryName` on each row.
    */
   async search(query: StateSearchInput): Promise<PagedResult<StateSearchRow>> {
-    const { q, isActive, page, pageSize, sortBy, sortOrder } = query;
+    const { q, isActive, countryId, page, pageSize, sortBy, sortOrder } = query;
 
     const conditions = [];
     if (q) {
@@ -67,6 +67,7 @@ export class StateService {
     }
     if (isActive === 'active') conditions.push(eq(state.isActive, true));
     else if (isActive === 'inactive') conditions.push(eq(state.isActive, false));
+    if (countryId) conditions.push(eq(state.countryId, countryId));
 
     const where = conditions.length ? and(...conditions) : undefined;
 

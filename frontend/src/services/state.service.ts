@@ -7,6 +7,7 @@ import type { ApiResponse, PagedResult, State, StateSearchRow } from '@/types/ap
 export interface StateSearchParams {
   q?: string
   isActive?: 'all' | 'active' | 'inactive'
+  countryId?: number
   page?: number
   pageSize?: number
   sortBy?: 'code' | 'name' | 'isActive'
