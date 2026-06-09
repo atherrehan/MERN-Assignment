@@ -1,7 +1,13 @@
 // The ONLY caller of the axios instance for country endpoints.
 // Pages/components MUST import this service — never axios directly.
 import { apiClient, unwrap } from '@/lib/api/axios'
-import type { ApiResponse, Country, CountrySearchRow, PagedResult } from '@/types/api'
+import type {
+  ApiResponse,
+  Country,
+  CountryBulkDeleteResult,
+  CountrySearchRow,
+  PagedResult,
+} from '@/types/api'
 
 /** Search/list params — mirrors the backend country search query schema. */
 export interface CountrySearchParams {
@@ -57,10 +63,23 @@ class CountryService {
     return unwrap(res)
   }
 
-  /** Soft-delete a country (no payload on success). */
+  /** Delete a country (no payload on success). Blocked server-side if it has states. */
   async remove(id: number): Promise<void> {
     const res = await apiClient.delete<null, ApiResponse<null>>(`/countries/${id}`)
     if (!res.success) throw new Error(res.message)
+  }
+
+  /**
+   * Delete many countries by id. Partial success: countries with states are not
+   * deleted and come back in `skipped` with a reason.
+   */
+  async bulkDelete(ids: number[]): Promise<CountryBulkDeleteResult> {
+    const res = await apiClient.post<
+      CountryBulkDeleteResult,
+      ApiResponse<CountryBulkDeleteResult>,
+      { ids: number[] }
+    >('/countries/bulk-delete', { ids })
+    return unwrap(res)
   }
 }
 

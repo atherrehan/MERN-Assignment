@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { SearchInput } from '@/components/search-input'
 import { StatusFilter, type StatusFilterValue } from '@/components/status-filter'
 import { CountryCombobox } from '@/components/country-combobox'
 import { DataTable, type Column } from '@/components/data-table'
 import { PaginationControls } from '@/components/pagination-controls'
 import { Badge } from '@/components/ui/badge'
-import { buttonVariants } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { stateService } from '@/services/state.service'
 import type { PagedResult, StateSearchRow } from '@/types/api'
 
@@ -45,9 +57,14 @@ export default function StatesListPage() {
   const [status, setStatus] = useState<StatusFilterValue>('all')
   const [countryId, setCountryId] = useState<number | undefined>(undefined)
   const [page, setPage] = useState(1)
+  const [refreshKey, setRefreshKey] = useState(0)
   const [data, setData] = useState<PagedResult<StateSearchRow> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // Filters reset to page 1 when they change.
   const handleSearch = useCallback((t: string) => {
@@ -67,6 +84,7 @@ export default function StatesListPage() {
     let active = true
     setLoading(true)
     setError(null)
+    setSelectedIds([]) // selection is page-scoped — clear on any refetch/filter change
     stateService
       .search({ q: term || undefined, isActive: status, countryId, page, pageSize: PAGE_SIZE })
       .then((res) => {
@@ -84,15 +102,58 @@ export default function StatesListPage() {
     return () => {
       active = false
     }
-  }, [term, status, countryId, page])
+  }, [term, status, countryId, page, refreshKey])
+
+  async function handleBulkDelete() {
+    setDeleting(true)
+    try {
+      const { deletedCount } = await stateService.bulkDelete(selectedIds)
+      toast.success(`Deleted ${deletedCount} state${deletedCount === 1 ? '' : 's'}`)
+      setRefreshKey((k) => k + 1) // refetch; the effect clears the selection
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete states')
+    } finally {
+      setDeleting(false)
+      setConfirmOpen(false)
+    }
+  }
 
   return (
     <main className="mx-auto max-w-4xl space-y-4 p-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">States</h1>
-        <Link to="/states/new" className={buttonVariants()}>
-          Add State
-        </Link>
+        <div className="flex items-center gap-2">
+          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialogTrigger
+              render={
+                <Button type="button" variant="destructive" disabled={selectedIds.length === 0}>
+                  Delete selected ({selectedIds.length})
+                </Button>
+              }
+            />
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Delete {selectedIds.length} selected state{selectedIds.length === 1 ? '' : 's'}?
+                </AlertDialogTitle>
+                <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  disabled={deleting}
+                  onClick={handleBulkDelete}
+                >
+                  {deleting ? 'Deleting…' : 'Delete'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Link to="/states/new" className={buttonVariants()}>
+            Add State
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -109,6 +170,9 @@ export default function StatesListPage() {
         loading={loading}
         error={error}
         emptyMessage="No states found."
+        selectable
+        selectedKeys={selectedIds}
+        onSelectionChange={setSelectedIds}
       />
 
       <PaginationControls

@@ -40,3 +40,9 @@ export interface StateSearchRow extends State {
 export interface CountrySearchRow extends Country {
   stateCount: number
 }
+
+/** Partial-success report from the country bulk-delete endpoint. */
+export interface CountryBulkDeleteResult {
+  deletedIds: number[]
+  skipped: { id: number; reason: string }[]
+}

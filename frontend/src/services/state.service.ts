@@ -56,10 +56,20 @@ class StateService {
     return unwrap(res)
   }
 
-  /** Soft-delete a state (no payload on success). */
+  /** Delete a state (no payload on success). */
   async remove(id: number): Promise<void> {
     const res = await apiClient.delete<null, ApiResponse<null>>(`/states/${id}`)
     if (!res.success) throw new Error(res.message)
+  }
+
+  /** Delete many states by id; returns how many rows were removed. */
+  async bulkDelete(ids: number[]): Promise<{ deletedCount: number }> {
+    const res = await apiClient.post<
+      { deletedCount: number },
+      ApiResponse<{ deletedCount: number }>,
+      { ids: number[] }
+    >('/states/bulk-delete', { ids })
+    return unwrap(res)
   }
 }
 
