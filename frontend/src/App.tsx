@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { Toaster } from '@/components/ui/sonner'
+import { AppLayout } from '@/components/app-layout'
 import HomePage from '@/pages/HomePage'
 import CountriesListPage from '@/pages/countries/CountriesListPage'
 import CountryNewPage from '@/pages/countries/CountryNewPage'
@@ -12,13 +13,16 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/countries" element={<CountriesListPage />} />
-        <Route path="/countries/new" element={<CountryNewPage />} />
-        <Route path="/countries/:id" element={<CountryEditPage />} />
-        <Route path="/states" element={<StatesListPage />} />
-        <Route path="/states/new" element={<StateNewPage />} />
-        <Route path="/states/:id" element={<StateEditPage />} />
+        {/* AppLayout wraps every route so the header/sidebar/footer are always visible. */}
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/countries" element={<CountriesListPage />} />
+          <Route path="/countries/new" element={<CountryNewPage />} />
+          <Route path="/countries/:id" element={<CountryEditPage />} />
+          <Route path="/states" element={<StatesListPage />} />
+          <Route path="/states/new" element={<StateNewPage />} />
+          <Route path="/states/:id" element={<StateEditPage />} />
+        </Route>
       </Routes>
       <Toaster richColors position="top-right" />
     </>
